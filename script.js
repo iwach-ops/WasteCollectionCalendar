@@ -22,5 +22,19 @@ const abfuhrterminListeElement = document.getElementById("abfuhrterminListe");
 abfuhrterminListe.forEach(termin => {
     const terminElement = document.createElement("li");
     terminElement.textContent = `${termin.abfallart} - ${termin.datum}`;
+
+    if (termin.abfallart === "Restmüll") {
+        terminElement.classList.add("restmuell");
+    }
+    if (termin.abfallart === "Biomüll") {
+        terminElement.classList.add("biomuell");
+    }
+    if (termin.abfallart === "Papier") {
+        terminElement.classList.add("papier");
+    }
+    if (termin.abfallart === "Gelber Sack") {
+        terminElement.classList.add("gelber-sack");
+    }
+
     abfuhrterminListeElement.appendChild(terminElement);
 });

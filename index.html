@@ -1,14 +1,66 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <title>Müll App</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .restmuell {
+            color: red;
+            /* Farbe für Restmüll */
+            font-weight: bold;
+            /* Fettgedruckt für Restmüll */
+        }
+
+        .biomuell {
+            color: brown;
+            /* Farbe für Biomüll */
+            font-weight: bold;
+            /* Fettgedruckt für Biomüll */
+        }
+
+        .papier {
+            color: blue;
+            /* Farbe für Papier */
+            font-weight: bold;
+            /* Fettgedruckt für Papier */
+        }
+
+        .gelber-sack {
+            color: #b8860b;
+            /* Farbe für Gelber Sack */
+            font-weight: bold;
+            /* Fettgedruckt für Gelber Sack */
+        }
+    </style>
 </head>
+
 <body>
     <h1>Nächste Abholung</h1>
 
     <ul id="abfuhrterminListe"></ul>
 
-     <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
+
 </html>
