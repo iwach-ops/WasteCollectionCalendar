@@ -1,3 +1,4 @@
+/*
 const abfuhrterminListe = [
     {
         abfallart: "Restmüll",
@@ -17,7 +18,7 @@ const abfuhrterminListe = [
     }
 ];
 
-const abfuhrterminListeElement = document.getElementById("abfuhrterminListe");
+const abfuhrterminListeElement = document.getElementById("abfuhrterminListeId");
 
 abfuhrterminListe.forEach(termin => {
     const terminElement = document.createElement("li");
@@ -38,3 +39,37 @@ abfuhrterminListe.forEach(termin => {
 
     abfuhrterminListeElement.appendChild(terminElement);
 });
+
+fetch("https://sab.ssl.metageneric.de/app/abfuhrkalender2026/app.php3?cmd=get&modus=2&datum_1=10.07.2026&turnus_1=2&datum_2=13.07.2026&turnus_2=2&datum_3=08.07.2026&turnus_3=2&stadtteil_id=1601&dsd_behaelter_value=b120_b240&with_strasse=sab_with_strasse&strasse=Henny-Porten-Stra%DFe%2012")
+    .then(response => {
+        console.log(response);
+    });
+  
+
+const formData = new URLSearchParams();
+
+formData.append("r", "findStrasse");
+formData.append("strasse", "Henny");
+
+fetch("https://sab.ssl.metageneric.de/app/sab_i_tp/index.2025_2026.php", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: formData
+})
+    .then(response => response.text())
+    .then(data => {
+        console.log(data);
+    });
+     */
+ 
+fetch("http://localhost:3000/termine")
+    .then(response => response.json())
+    .then(data => {
+       console.log(data);
+
+    document.getElementById("datumId").textContent = data.datum;
+    document.getElementById("abfuhrArtId").textContent = data.abfallart;
+    });
+    
