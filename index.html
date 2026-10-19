@@ -52,11 +52,27 @@
             font-weight: bold;
             /* Fettgedruckt für Gelber Sack */
         }
+
+        #termineAnzeigeId {
+            white-space: pre-line;
+        }
     </style>
 </head>
 
 <body>
     <h1>Nächste Abholung</h1>
+
+
+    <select id="strasseId">
+        <option value="">Straße auswählen</option>       
+    </select>
+    <select id="hausNummerId" hidden>
+        <option value="">Haus auswählen</option>
+        
+    </select>
+
+    <div id="termineAnzeigeId"></div>
+
 
     <ul id="XSbfuhrterminListeId"></ul>
 
