@@ -2,6 +2,7 @@ const cors = require("cors");
 const cheerio = require("cheerio");
 const express = require("express");
 
+
 const app = express();
 app.use(cors());
 const port = 3000;
@@ -15,55 +16,57 @@ app.listen(port, () => {
 });
 
 app.get("/strassen", async (req, res) => {
+
+    console.log("Straßenliste wurde angefordert");
+
+
+
     const formData = new URLSearchParams();
 
     formData.append("r", "findStrasse");
     formData.append("strasse", "Henny");
 
     const response = await fetch(
-        "https://sab.ssl.metageneric.de/app/sab_i_tp/index.2025_2026.php",
+        "https://sab.ssl.metageneric.de/app/sab_i_tp/index.php",
         {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: formData
+            // method: "POST",
+            //    headers: {
+            //        "Content-Type": "application/x-www-form-urlencoded"
+            //    },
+            //  body: formData
         }
     );
 
     const data = await response.text();
 
-    res.send(data);
+    const $ = cheerio.load(data);
+
+    const strassen = [];
+
+    $("#strasse option").each((index, element) => {
+        const strasse = $(element).text().trim();
+
+        if (strasse !== "") {
+            strassen.push(strasse);
+        }
+    });
+
+    console.log("Anzahl Straßen:", strassen.length);
+    console.log("Erste fünf Straßen:", strassen.slice(0, 5));
+
+    //res.send(data);
+    res.json(strassen);
 });
 
 app.get("/hausnummern", async (req, res) => {
+
+
     const formData = new URLSearchParams();
+
+    const selectedStrasse = req.query.strasse;
 
     formData.append("r", "getStandplatzInfo");
-    formData.append("strasse", "Henny-Porten-Straße");
-
-    const response = await fetch(
-        "https://sab.ssl.metageneric.de/app/sab_i_tp/index.2025_2026.php",
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: formData
-        }
-    );
-
-    const data = await response.text();
-
-    res.send(data);
-});
-
-app.get("/termine", async (req, res) => {
-    const formData = new URLSearchParams();
-
-    formData.append("r", "getHausnummerInfo");
-    formData.append("strasse", "Henny-Porten-Straße");
-    formData.append("hausnummer", "12");
+    formData.append("strasse", selectedStrasse);
 
     const response = await fetch(
         "https://sab.ssl.metageneric.de/app/sab_i_tp/index.2025_2026.php",
@@ -80,35 +83,163 @@ app.get("/termine", async (req, res) => {
 
     const $ = cheerio.load(data);
 
-    const ersteAbfallart = $("h3").first().text();
 
-     const ersterTermin = $("h3")
-        .first()
-        .nextAll(".termintable")
-        .first()
-        .find(".col-lg-2")
-        .first()
-        .text()
-        .trim();
+    const buttons = $(".btn_hnr");
 
-    console.log(ersteAbfallart);
+    const hausNummern = [];
 
-    const termin = {
-        abfallart: ersteAbfallart,
-        datum: ersterTermin
-    };
+    buttons.each((index, element) => {
+        hausNummern.push($(element).text());
+        //console.log($(element).text());
+
+
+
+    });
+
+    //console.log("Anzahl Hausnummern:", buttons.length);
+    console.log("Hausnummern:", hausNummern);
+
+    res.json(hausNummern);
+
+
+});
+
+app.get("/termine", async (req, res) => {
+    const selectedStrasse = req.query.strasse;
+    const selectedHausNummer = req.query.hausnummer;
+
+
+    console.log("Straße:", selectedStrasse);
+    console.log("Hausnummer:", selectedHausNummer);
+
+    //res.send("Adresse empfangen");
+
+
+    const formData = new URLSearchParams();
+
+    formData.append("r", "getHausnummerInfo");
+    formData.append("strasse", selectedStrasse);
+    formData.append("hausnummer", selectedHausNummer);
+
+    console.log(formData.toString());
+
+
+    const response = await fetch(
+        "https://sab.ssl.metageneric.de/app/sab_i_tp/index.2025_2026.php",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: formData
+        }
+    );
+
+    const data = await response.text();
+
+    const $ = cheerio.load(data);
+
+    $("h3").each((index, element) => {
+        console.log($(element).text());
+
+
+    });
+
+    const terminTabellen = $(".termintable");
+
+    const abfuhrTermine = {};
+
+    const muellArten = [
+        "Restabfall",
+        "Bioabfall",
+        "Altpapier",
+        "Gelbe Tonne"
+    ];
+
+
+    terminTabellen.each((index, element) => {
+        console.log("Tabelle:", index);
+
+        console.log("Termine:", $(element).text().trim());
+
+        const termine = $(element).find(".row > div");
+        console.log("Anzahl Termine:", termine.length);
+
+        const termineArray = [];
+
+        termine.each((i, terminElement) => {
+            const termin = $(terminElement).text().trim();
+            termineArray.push(termin);
+
+            // NEU: Termine unter der jeweiligen Müllart speichern
+
+        });
+
+        abfuhrTermine[muellArten[index]] = termineArray;
+
+        console.log("Alle Abfuhrtermine:", abfuhrTermine);
+
+        console.log("Termine-Array:", termineArray);
+
+        console.log("Müllart:", muellArten[index]);
+    });
+
+    console.log(abfuhrTermine);
+
+    console.log("Anzahl Termintabellen:", terminTabellen.length);
+    console.log("Erste Tabelle:", terminTabellen.eq(0).text());
+
+
+    const restabfallTermine = terminTabellen.eq(0).find(".row > div");
+
+    console.log("Anzahl Restabfalltermine:", restabfallTermine.length);
+
+    //console.log("SAB-Antwort:", data);
+
+    const restabfallArray = [];
+
+    restabfallTermine.each((index, element) => {
+        const termin = $(element).text().trim();
+        restabfallArray.push(termin);
+    });
+
+    console.log("Restabfall:", restabfallArray);
+
     //res.send(data);
-    res.json(termin);
 
+    res.json(abfuhrTermine);
 
-   
-
-    console.log(ersterTermin);
-
-
-
-
-    console.log(termin);
-
+    /*
+       
+           const ersteAbfallart = $("h3").first().text();
+       
+           const ersterTermin = $("h3")
+               .first()
+               .nextAll(".termintable")
+               .first()
+               .find(".col-lg-2")
+               .first()
+               .text()
+               .trim();
+       
+           console.log(ersteAbfallart);
+       
+           const termin = {
+               abfallart: ersteAbfallart,
+               datum: ersterTermin
+           };
+           //res.send(data);
+           res.json(termin);
+       
+       
+       
+       
+           console.log(ersterTermin);
+       
+       
+       
+       
+           console.log(termin);
+       */
 });
 
