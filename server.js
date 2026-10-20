@@ -17,45 +17,39 @@ app.listen(port, () => {
 
 app.get("/strassen", async (req, res) => {
 
-    console.log("Straßenliste wurde angefordert");
+    try {
 
+        console.log("Straßenliste wurde angefordert");
 
+        const response = await fetch(
+            "https://sab.ssl.metageneric.de/app/sab_i_tp/index.php"
+            //"https://ungueltige-sab-testadresse.invalid/index.php"
+        );
 
-    const formData = new URLSearchParams();
+        const data = await response.text();
 
-    formData.append("r", "findStrasse");
-    formData.append("strasse", "Henny");
+        const $ = cheerio.load(data);
 
-    const response = await fetch(
-        "https://sab.ssl.metageneric.de/app/sab_i_tp/index.php",
-        {
-            // method: "POST",
-            //    headers: {
-            //        "Content-Type": "application/x-www-form-urlencoded"
-            //    },
-            //  body: formData
-        }
-    );
+        const strassen = [];
 
-    const data = await response.text();
+        $("#strasse option").each((index, element) => {
+            const strasse = $(element).text().trim();
 
-    const $ = cheerio.load(data);
+            if (strasse !== "") {
+                strassen.push(strasse);
+            }
+        });
 
-    const strassen = [];
+        console.log("Anzahl Straßen:", strassen.length);
+        console.log("Erste fünf Straßen:", strassen.slice(0, 5));
 
-    $("#strasse option").each((index, element) => {
-        const strasse = $(element).text().trim();
-
-        if (strasse !== "") {
-            strassen.push(strasse);
-        }
-    });
-
-    console.log("Anzahl Straßen:", strassen.length);
-    console.log("Erste fünf Straßen:", strassen.slice(0, 5));
-
-    //res.send(data);
-    res.json(strassen);
+        res.json(strassen);
+    } catch (error) {
+        console.error("Fehler beim Abrufen der Straßen:", error);
+        res.status(500).json({
+            error: "Straßenliste konnte nicht geladen werden"
+        });
+    }
 });
 
 app.get("/hausnummern", async (req, res) => {
@@ -111,9 +105,6 @@ app.get("/termine", async (req, res) => {
 
     console.log("Straße:", selectedStrasse);
     console.log("Hausnummer:", selectedHausNummer);
-
-    //res.send("Adresse empfangen");
-
 
     const formData = new URLSearchParams();
 
@@ -189,57 +180,6 @@ app.get("/termine", async (req, res) => {
     console.log("Anzahl Termintabellen:", terminTabellen.length);
     console.log("Erste Tabelle:", terminTabellen.eq(0).text());
 
-
-    const restabfallTermine = terminTabellen.eq(0).find(".row > div");
-
-    console.log("Anzahl Restabfalltermine:", restabfallTermine.length);
-
-    //console.log("SAB-Antwort:", data);
-
-    const restabfallArray = [];
-
-    restabfallTermine.each((index, element) => {
-        const termin = $(element).text().trim();
-        restabfallArray.push(termin);
-    });
-
-    console.log("Restabfall:", restabfallArray);
-
-    //res.send(data);
-
     res.json(abfuhrTermine);
 
-    /*
-       
-           const ersteAbfallart = $("h3").first().text();
-       
-           const ersterTermin = $("h3")
-               .first()
-               .nextAll(".termintable")
-               .first()
-               .find(".col-lg-2")
-               .first()
-               .text()
-               .trim();
-       
-           console.log(ersteAbfallart);
-       
-           const termin = {
-               abfallart: ersteAbfallart,
-               datum: ersterTermin
-           };
-           //res.send(data);
-           res.json(termin);
-       
-       
-       
-       
-           console.log(ersterTermin);
-       
-       
-       
-       
-           console.log(termin);
-       */
 });
-
