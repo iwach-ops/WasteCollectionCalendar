@@ -3,6 +3,20 @@ const hausNummerSelect = document.getElementById("hausNummerId");
 const termineAnzeige = document.getElementById("termineAnzeigeId");
 
 
+
+
+let abfuhrPlatz = {
+    strasse: "",
+    hausnummer: ""
+
+}
+
+const gespeicherteAdresse = localStorage.getItem("adresse");
+
+const adressObjekt = gespeicherteAdresse
+    ? JSON.parse(gespeicherteAdresse)
+    : null;
+
 fetch("http://localhost:3000/strassen")
     //.then(response => response.json())
     .then(response => {
@@ -26,6 +40,15 @@ fetch("http://localhost:3000/strassen")
         });
 
 
+
+        if (adressObjekt?.strasse) {
+            strasseSelect.value = adressObjekt.strasse;
+            strasseSelect.dispatchEvent(new Event("change"));
+
+        }
+
+
+
     })
     .catch(error => {
         console.error("Fehler beim Laden der Straßen:", error);
@@ -35,8 +58,19 @@ fetch("http://localhost:3000/strassen")
 termineAnzeige.textContent = "Abfuhrtermine werden hier angezeigt";
 
 
-strasseSelect.addEventListener("change", () => {
+strasseSelect.addEventListener("change", (event) => {
     const selectedStrasse = strasseSelect.value;
+
+
+
+    abfuhrPlatz.strasse = selectedStrasse;
+    abfuhrPlatz.hausnummer = "";
+
+
+
+    if (event.isTrusted) {
+        localStorage.removeItem("adresse");
+    }
 
     hausNummerSelect.hidden = true;
     hausNummerSelect.innerHTML = "";
@@ -74,15 +108,29 @@ strasseSelect.addEventListener("change", () => {
 
                 hausNummerSelect.appendChild(placeholder);
 
-                hausNummern.forEach(hausNummer => {
+                hausNummern.forEach(hausnummer => {
                     const option = document.createElement("option");
-                    option.value = hausNummer;
-                    option.textContent = hausNummer;
+                    option.value = hausnummer;
+                    option.textContent = hausnummer;
                     hausNummerSelect.appendChild(option);
 
                 });
+
+                if (
+                    localStorage.getItem("adresse") !== null &&
+                    adressObjekt?.strasse === selectedStrasse &&
+                    adressObjekt?.hausnummer &&
+                    hausNummern.map(String).includes(adressObjekt.hausnummer)
+                ) {
+                    hausNummerSelect.value = adressObjekt.hausnummer;
+                    hausNummerSelect.dispatchEvent(new Event("change"));
+                }
+
+
                 hausNummerSelect.hidden = false;
             }
+
+
 
         })
         .catch(error => {
@@ -93,14 +141,29 @@ strasseSelect.addEventListener("change", () => {
 });
 
 
+
 hausNummerSelect.addEventListener("change", () => {
     const selectedHausNummer = hausNummerSelect.value;
     const selectedStrasse = strasseSelect.value;
+
+
+
+    abfuhrPlatz.hausnummer = selectedHausNummer;
+
+    if (selectedHausNummer) {
+        localStorage.setItem("adresse", JSON.stringify(abfuhrPlatz));
+    } else {
+        localStorage.removeItem("adresse");
+    }
 
     termineAnzeige.textContent = "";
 
     if (selectedHausNummer) {
         console.log("Ausgewählte Adresse:", selectedStrasse, " ", selectedHausNummer);
+
+
+
+
 
         fetch(`http://localhost:3000/termine?strasse=${encodeURIComponent(selectedStrasse)}&hausnummer=${encodeURIComponent(selectedHausNummer)}`)
 
@@ -126,6 +189,7 @@ hausNummerSelect.addEventListener("change", () => {
                     "Altpapier: " + abfuhrTermine["Altpapier"][0] + "\n" +
                     "Gelbe Tonne: " + abfuhrTermine["Gelbe Tonne"][0];
                 console.log("Abfuhrtermine:", abfuhrTermine);
+                console.log(abfuhrPlatz)
             })
             .catch(error => {
                 console.error("Fehler beim Laden der Abfuhrtermine:", error);
